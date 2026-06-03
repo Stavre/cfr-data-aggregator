@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: CFR-data-aggregator
+  main:
+    web-application-type: none
