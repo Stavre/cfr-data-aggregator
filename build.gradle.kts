@@ -1,5 +1,7 @@
 plugins {
     java
+    pmd
+    checkstyle
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.spring.dependency.management)
 }
@@ -29,6 +31,27 @@ dependencies {
     testCompileOnly(libs.lombok)
     testRuntimeOnly(libs.junit.launcher)
     testAnnotationProcessor(libs.lombok)
+}
+
+dependencyManagement {
+    imports {
+        mavenBom(libs.spring.cloud.dependencies.get().toString())
+    }
+}
+
+checkstyle {
+    toolVersion = libs.versions.checkstyle.get()
+    configFile = file("config/checkstyle/checkstyle.xml")
+    isIgnoreFailures = false
+    maxWarnings = 0
+}
+
+pmd {
+    toolVersion = libs.versions.pmd.get()
+    ruleSets = emptyList()
+    ruleSetFiles = files("config/pmd/ruleset.xml")
+    isConsoleOutput = true
+    isIgnoreFailures = false
 }
 
 tasks.withType<Test> {
