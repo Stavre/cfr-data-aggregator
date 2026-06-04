@@ -137,7 +137,7 @@
       <property name="tokens"
                value="CLASS_DEF, METHOD_DEF, CTOR_DEF, LITERAL_FOR, LITERAL_WHILE, STATIC_INIT,
                     INSTANCE_INIT, ANNOTATION_DEF, ENUM_DEF, INTERFACE_DEF, RECORD_DEF,
-                    COMPACT_CTOR_DEF, LITERAL_SWITCH, LITERAL_CASE, LITERAL_DEFAULT,
+                    COMPACT_CTOR_DEF, LITERAL_SWITCH,
                     LITERAL_FINALLY, LITERAL_CATCH"/>
     </module>
     <module name="SuppressionXpathSingleFilter">
@@ -152,7 +152,7 @@
     </module>
     <module name="WhitespaceAfter">
       <property name="tokens"
-               value="COMMA, SEMI, TYPECAST, ELLIPSIS, LITERAL_YIELD, LITERAL_CASE, ANNOTATIONS"/>
+               value="COMMA, SEMI, TYPECAST, ELLIPSIS, LITERAL_YIELD, LITERAL_CASE"/>
     </module>
     <module name="WhitespaceAround">
       <property name="allowEmptyConstructors" value="true"/>
@@ -197,14 +197,11 @@
     <module name="OneStatementPerLine"/>
     <module name="MultipleVariableDeclarations"/>
     <module name="ArrayTypeStyle"/>
-    <module name="JavadocLeadingAsteriskAlign"/>
-    <module name="JavadocMissingLeadingAsterisk"/>
     <module name="JavadocContentLocation"/>
     <module name="MissingSwitchDefault"/>
     <module name="FallThrough"/>
     <module name="UpperEll"/>
     <module name="ModifierOrder"/>
-    <module name="TextBlockGoogleStyleFormatting"/>
     <module name="EmptyLineSeparator">
       <property name="tokens"
                value="PACKAGE_DEF, IMPORT, STATIC_IMPORT, CLASS_DEF, INTERFACE_DEF, ENUM_DEF,
@@ -241,7 +238,7 @@
       <property name="option" value="nl"/>
     </module>
     <module name="PackageName">
-      <property name="format" value="^[a-z]+(\.[a-z][a-z0-9]*)*$"/>
+      <property name="format" value="^[a-z]+(\.[a-z][a-z0-9_]*)*$"/>
       <message key="name.invalidPattern"
              value="Package name ''{0}'' must match pattern ''{1}''."/>
     </module>
@@ -257,7 +254,6 @@
       <message key="name.invalidPattern"
              value="Type name ''{0}'' must match pattern ''{1}''."/>
     </module>
-    <module name="GoogleNonConstantFieldName"/>
     <module name="ParameterName">
       <property name="format" value="^[a-z]([a-z0-9][a-zA-Z0-9]*)?$"/>
       <message key="name.invalidPattern"
@@ -337,7 +333,6 @@
     </module>
     <module name="NoWhitespaceBeforeCaseDefaultColon"/>
     <module name="OverloadMethodsDeclarationOrder"/>
-    <module name="ConstructorsDeclarationGrouping"/>
     <module name="VariableDeclarationUsageDistance"/>
     <module name="CustomImportOrder">
       <property name="sortImportsInGroupAlphabetically" value="true"/>
@@ -377,11 +372,6 @@
                     LT, MINUS, MOD, NOT_EQUAL, PLUS, QUESTION, SL, SR, STAR, METHOD_REF,
                     TYPE_EXTENSION_AND "/>
     </module>
-    <module name="OperatorWrap">
-      <property name="id" value="OperatorWrapEOL"/>
-      <property name="option" value="EOL"/>
-      <property name="tokens" value="LAMBDA"/>
-    </module>
     <module name="AnnotationLocation">
       <property name="id" value="AnnotationLocationTypeAndPackage"/>
       <property name="tokens"
@@ -398,7 +388,6 @@
       <property name="tokens" value="VARIABLE_DEF"/>
       <property name="allowSamelineMultipleAnnotations" value="true"/>
     </module>
-    <module name="MissingOverrideOnRecordAccessor"/>
     <module name="NonEmptyAtclauseDescription"/>
     <module name="InvalidJavadocPosition"/>
     <module name="JavadocTagContinuationIndentation"/>

@@ -71,7 +71,6 @@
     <rule ref="category/java/codestyle.xml/UseUnderscoresInNumericLiterals"/>
 
     <!-- Design -->
-    <rule ref="category/java/design.xml/AbstractClassWithoutAbstractMethod"/>
     <rule ref="category/java/design.xml/AvoidCatchingGenericException"/>
     <rule ref="category/java/design.xml/AvoidDeeplyNestedIfStmts"/>
     <rule ref="category/java/design.xml/AvoidRethrowingException"/>
@@ -147,7 +146,6 @@
     </rule>
     <rule ref="category/java/errorprone.xml/AvoidMultipleUnaryOperators"/>
     <rule ref="category/java/errorprone.xml/AvoidUsingOctalValues"/>
-    <rule ref="category/java/errorprone.xml/BadComparison"/>
     <rule ref="category/java/errorprone.xml/BrokenNullCheck"/>
     <rule ref="category/java/errorprone.xml/CheckSkipResult"/>
     <rule ref="category/java/errorprone.xml/ClassCastExceptionWithToArray"/>
@@ -173,7 +171,7 @@
     <rule ref="category/java/errorprone.xml/MissingSerialVersionUID"/>
     <rule ref="category/java/errorprone.xml/MissingStaticMethodInNonInstantiatableClass"/>
     <rule ref="category/java/errorprone.xml/MoreThanOneLogger"/>
-    <rule ref="category/java/errorprone.xml/NonCaseLabelInSwitchStatement"/>
+    <rule ref="category/java/errorprone.xml/NonCaseLabelInSwitch"/>
     <rule ref="category/java/errorprone.xml/NonStaticInitializer"/>
     <rule ref="category/java/errorprone.xml/NullAssignment"/>
     <rule ref="category/java/errorprone.xml/OverrideBothEqualsAndHashcode"/>
@@ -201,7 +199,6 @@
     <!-- Multithreading -->
     <rule ref="category/java/multithreading.xml/AvoidSynchronizedAtMethodLevel"/>
     <rule ref="category/java/multithreading.xml/AvoidThreadGroup"/>
-    <rule ref="category/java/multithreading.xml/AvoidUsingVolatileField"/>
     <rule ref="category/java/multithreading.xml/DoNotUseThreads"/>
     <rule ref="category/java/multithreading.xml/DontCallThreadRun"/>
     <rule ref="category/java/multithreading.xml/DoubleCheckedLocking"/>
@@ -216,21 +213,16 @@
     <rule ref="category/java/performance.xml/AvoidCalendarDateCreation"/>
     <rule ref="category/java/performance.xml/AvoidFileStream"/>
     <rule ref="category/java/performance.xml/BigIntegerInstantiation"/>
-    <rule ref="category/java/performance.xml/BooleanInstantiation"/>
-    <rule ref="category/java/performance.xml/ByteInstantiation"/>
     <rule ref="category/java/performance.xml/ConsecutiveAppendsShouldReuse"/>
     <rule ref="category/java/performance.xml/ConsecutiveLiteralAppends"/>
     <rule ref="category/java/performance.xml/InefficientEmptyStringCheck"/>
     <rule ref="category/java/performance.xml/InefficientStringBuffering"/>
     <rule ref="category/java/performance.xml/InsufficientStringBufferDeclaration"/>
-    <rule ref="category/java/performance.xml/IntegerInstantiation"/>
-    <rule ref="category/java/performance.xml/LongInstantiation"/>
     <rule ref="category/java/performance.xml/OptimizableToArrayCall"/>
     <rule ref="category/java/performance.xml/RedundantFieldInitializer"/>
-    <rule ref="category/java/performance.xml/ShortInstantiation"/>
     <rule ref="category/java/performance.xml/StringInstantiation"/>
     <rule ref="category/java/performance.xml/StringToString"/>
-    <rule ref="category/java/performance.xml/TooFewBranchesForASwitchStatement"/>
+    <rule ref="category/java/performance.xml/TooFewBranchesForSwitch"/>
     <rule ref="category/java/performance.xml/UseArrayListInsteadOfVector"/>
     <rule ref="category/java/performance.xml/UseArraysAsList"/>
     <rule ref="category/java/performance.xml/UseIndexOfChar"/>

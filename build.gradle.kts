@@ -23,6 +23,8 @@ repositories {
 
 dependencies {
     implementation(libs.jackson.dataformat.csv)
+    implementation(libs.jackson.datatype.jsr310)
+    implementation(libs.progressbar)
     implementation(libs.spring.cloud.openfeign)
     implementation(libs.picocli.spring.boot)
     compileOnly(libs.lombok)
@@ -71,4 +73,8 @@ tasks.jacocoTestReport {
         xml.required = true
         html.required = true
     }
+}
+
+tasks.bootJar {
+    destinationDirectory = layout.projectDirectory
 }

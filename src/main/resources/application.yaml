@@ -3,3 +3,10 @@ spring:
     name: CFR-data-aggregator
   main:
     web-application-type: none
+
+logging:
+  threshold:
+    console: "OFF"
+
+cfr-api:
+  base-url: http://localhost:8080
