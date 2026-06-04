@@ -2,6 +2,7 @@ plugins {
     java
     pmd
     checkstyle
+    jacoco
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.spring.dependency.management)
 }
@@ -21,6 +22,7 @@ repositories {
 }
 
 dependencies {
+    implementation(libs.jackson.dataformat.csv)
     implementation(libs.spring.cloud.openfeign)
     implementation(libs.picocli.spring.boot)
     compileOnly(libs.lombok)
@@ -54,6 +56,19 @@ pmd {
     isIgnoreFailures = false
 }
 
+jacoco {
+    toolVersion = libs.versions.jacoco.get()
+}
+
 tasks.withType<Test> {
     useJUnitPlatform()
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.withType<Test>())
+    reports {
+        xml.required = true
+        html.required = true
+    }
 }

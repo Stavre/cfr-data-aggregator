@@ -5,6 +5,7 @@ spring-cloud = "2025.1.1"
 picocli = "4.7.6"
 pmd = "7.7.0"
 checkstyle = "10.20.0"
+jacoco = "0.8.14"
 
 [libraries]
 spring-cloud-openfeign = { module = "org.springframework.cloud:spring-cloud-starter-openfeign" }
@@ -13,6 +14,7 @@ spring-boot-devtools = { module = "org.springframework.boot:spring-boot-devtools
 spring-boot-test = { module = "org.springframework.boot:spring-boot-starter-test" }
 lombok = { module = "org.projectlombok:lombok" }
 junit-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+jackson-dataformat-csv = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-csv" }
 picocli-spring-boot = { module = "info.picocli:picocli-spring-boot-starter", version.ref = "picocli" }
 picocli-codegen = { module = "info.picocli:picocli-codegen", version.ref = "picocli" }
 
