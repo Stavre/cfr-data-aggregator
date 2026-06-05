@@ -102,6 +102,18 @@ class StationExportServiceTest {
   }
 
   @Test
+  void exportArrivalsCreatesParentDirectory() throws IOException {
+    when(cfrApiClient.getAllStations()).thenReturn(List.of(stationResponse("Brasov")));
+    when(cfrApiClient.getStationArrivals(eq("Brasov"), any()))
+        .thenReturn(List.of(trainResponse()));
+
+    File out = new File(tempDir, "nested/dir/arrivals.csv");
+    service.exportArrivals("04.06.2026", out);
+
+    assertTrue(out.exists(), "output file must be created even when parent directory is missing");
+  }
+
+  @Test
   void exportDeparturesWritesHeaderAndRow() throws IOException {
     when(cfrApiClient.getAllStations()).thenReturn(List.of(stationResponse("Brasov")));
     when(cfrApiClient.getStationDepartures(eq("Brasov"), any()))

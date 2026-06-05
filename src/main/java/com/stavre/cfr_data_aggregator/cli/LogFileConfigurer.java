@@ -19,6 +19,10 @@ public class LogFileConfigurer {
 
   /** Adds a file appender that writes WARN and above to logFile. */
   public void attach(File logFile) {
+    File parent = logFile.getParentFile();
+    if (parent != null) {
+      parent.mkdirs();
+    }
     LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 
     PatternLayoutEncoder encoder = new PatternLayoutEncoder();
@@ -27,7 +31,7 @@ public class LogFileConfigurer {
     encoder.start();
 
     ThresholdFilter filter = new ThresholdFilter();
-    filter.setLevel(Level.INFO.toString());
+    filter.setLevel(Level.WARN.toString());
     filter.start();
 
     fileAppender = new FileAppender<>();

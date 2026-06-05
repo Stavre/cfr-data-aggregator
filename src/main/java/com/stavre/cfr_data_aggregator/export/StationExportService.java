@@ -10,6 +10,7 @@ import com.stavre.cfr_data_aggregator.client.dto.TrainMetadataResponse;
 import feign.FeignException;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -82,6 +83,10 @@ public class StationExportService {
 
   private <T> SequenceWriter openCsvWriter(Class<T> recordClass, File outputFile)
       throws IOException {
+    File parent = outputFile.getParentFile();
+    if (parent != null) {
+      Files.createDirectories(parent.toPath());
+    }
     CsvSchema schema = csvMapper.schemaFor(recordClass).withHeader();
     return csvMapper.writer(schema).writeValues(outputFile);
   }

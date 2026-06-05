@@ -56,6 +56,16 @@ class LogFileConfigurerTest {
   }
 
   @Test
+  void attachCreatesParentDirectory() {
+    File logFile = new File(tempDir, "nested/dir/test.log");
+
+    configurer.attach(logFile);
+
+    assertTrue(logFile.getParentFile().exists(), "parent directory must be created by attach()");
+    assertTrue(hasFileAppenderOnRoot(), "file appender must still be attached");
+  }
+
+  @Test
   void onlyWarnAndAboveAreWrittenToFile() throws IOException {
     File logFile = new File(tempDir, "test.log");
     configurer.attach(logFile);
