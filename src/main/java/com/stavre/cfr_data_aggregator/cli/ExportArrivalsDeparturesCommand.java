@@ -6,18 +6,19 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import org.springframework.stereotype.Component;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
-/** Exports station departures to a CSV file. */
+/** Exports station arrivals and departures to a CSV file. */
 @Component
 @Command(
-    name = "export-departures",
+    name = "export-arrivals-departures",
     mixinStandardHelpOptions = true,
-    description = "Export station departures to a CSV file"
+    description = "Export station arrivals and departures to a CSV file"
 )
-public class ExportDeparturesCommand implements Runnable {
+public class ExportArrivalsDeparturesCommand implements Runnable {
 
   private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
   private static final DateTimeFormatter FILE_TS_FMT =
@@ -35,12 +36,19 @@ public class ExportDeparturesCommand implements Runnable {
   private File outputFile;
 
   @SuppressWarnings("PMD.ImmutableField")
-  @Option(names = {"--log-file"},
-      description = "Log file path (default: departures-{timestamp}.log)")
+  @Option(names = {"--log-file"}, description = "Log file path (default: arrivals-departures-{timestamp}.log)")
   private File logFile;
 
+  @SuppressWarnings("PMD.ImmutableField")
+  @Option(
+      names = {"-s", "--stations"},
+      description = "Comma-delimited list of station names to process (default: all stations)",
+      split = ","
+  )
+  private List<String> stations;
+
   /** Creates the command with its required dependencies. */
-  public ExportDeparturesCommand(
+  public ExportArrivalsDeparturesCommand(
       StationExportService stationExportService,
       LogFileConfigurer logFileConfigurer) {
     this.stationExportService = stationExportService;
@@ -52,13 +60,13 @@ public class ExportDeparturesCommand implements Runnable {
     String resolvedDate = date != null ? date : LocalDate.now().format(DATE_FMT);
     String timestamp = LocalDateTime.now().format(FILE_TS_FMT);
     File resolvedOutput = outputFile != null
-        ? outputFile : new File("departures-" + timestamp + ".csv");
+        ? outputFile : new File("arrivals-departures-" + timestamp + ".csv");
     File resolvedLog = logFile != null
-        ? logFile : new File("departures-" + timestamp + ".log");
+        ? logFile : new File("arrivals-departures-" + timestamp + ".log");
 
     logFileConfigurer.attach(resolvedLog);
     try {
-      stationExportService.exportDepartures(resolvedDate, resolvedOutput);
+      stationExportService.exportArrivalsDepartures(resolvedDate, resolvedOutput, stations);
     } catch (IOException ex) {
       System.err.println("Export failed: " + ex.getMessage());
     } finally {

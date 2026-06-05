@@ -10,7 +10,7 @@ import picocli.CommandLine.Command;
     mixinStandardHelpOptions = true,
     version = "0.0.1",
     description = "CFR Data Aggregator CLI",
-    subcommands = {ExportArrivalsCommand.class, ExportDeparturesCommand.class}
+    subcommands = {ExportArrivalsDeparturesCommand.class}
 )
 public class CfrCommand implements Runnable {
 

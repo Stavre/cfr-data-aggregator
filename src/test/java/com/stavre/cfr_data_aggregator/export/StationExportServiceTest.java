@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.stavre.cfr_data_aggregator.client.CfrApiClient;
@@ -42,31 +44,29 @@ class StationExportServiceTest {
   File tempDir;
 
   @Test
-  void exportArrivalsWritesHeaderAndRow() throws IOException {
+  void exportArrivalsDeparturesWritesHeaderAndRow() throws IOException {
     when(cfrApiClient.getAllStations()).thenReturn(List.of(stationResponse("Brasov")));
-    when(cfrApiClient.getStationArrivals(eq("Brasov"), any()))
-        .thenReturn(List.of(trainResponse()));
+    when(cfrApiClient.getStation(eq("Brasov"), any())).thenReturn(List.of(trainResponse()));
 
-    File out = new File(tempDir, "arrivals.csv");
-    service.exportArrivals("04.06.2026", out);
+    File out = new File(tempDir, "out.csv");
+    service.exportArrivalsDepartures("04.06.2026", out, null);
 
     String csv = Files.readString(out.toPath(), StandardCharsets.UTF_8);
     assertTrue(csv.contains("currentTimestamp,station,trainId,trainOperator,"
-        + "fromStation,arrival,arrivalDelayMinutes,platform"), "header must be present");
+        + "fromStation,arrival,arrivalDelayMinutes,toStation,departure,departureDelayMinutes,platform"),
+        "header must be present");
     assertTrue(csv.contains("Brasov"), "station name must appear in data");
   }
 
   @Test
-  void exportArrivalsSkipsStationOnFeignException() throws IOException {
+  void exportArrivalsDeparturesSkipsStationOnFeignException() throws IOException {
     when(cfrApiClient.getAllStations())
         .thenReturn(List.of(stationResponse("Brasov"), stationResponse("Cluj-Napoca")));
-    when(cfrApiClient.getStationArrivals(eq("Brasov"), any()))
-        .thenThrow(feignException());
-    when(cfrApiClient.getStationArrivals(eq("Cluj-Napoca"), any()))
-        .thenReturn(List.of(trainResponse()));
+    when(cfrApiClient.getStation(eq("Brasov"), any())).thenThrow(feignException());
+    when(cfrApiClient.getStation(eq("Cluj-Napoca"), any())).thenReturn(List.of(trainResponse()));
 
-    File out = new File(tempDir, "arrivals.csv");
-    service.exportArrivals("04.06.2026", out);
+    File out = new File(tempDir, "out.csv");
+    service.exportArrivalsDepartures("04.06.2026", out, null);
 
     String csv = Files.readString(out.toPath(), StandardCharsets.UTF_8);
     assertTrue(csv.contains("Cluj-Napoca"), "successful station must be in CSV");
@@ -74,27 +74,26 @@ class StationExportServiceTest {
   }
 
   @Test
-  void exportArrivalsHandlesNullFields() throws IOException {
+  void exportArrivalsDeparturesHandlesNullFields() throws IOException {
     StationTrainResponse dto = new StationTrainResponse();
     when(cfrApiClient.getAllStations()).thenReturn(List.of(stationResponse("Brasov")));
-    when(cfrApiClient.getStationArrivals(eq("Brasov"), any())).thenReturn(List.of(dto));
+    when(cfrApiClient.getStation(eq("Brasov"), any())).thenReturn(List.of(dto));
 
-    File out = new File(tempDir, "arrivals.csv");
-    service.exportArrivals("04.06.2026", out);
+    File out = new File(tempDir, "out.csv");
+    service.exportArrivalsDepartures("04.06.2026", out, null);
 
-    String csv = Files.readString(out.toPath(), StandardCharsets.UTF_8);
     assertTrue(out.exists(), "output file must be created even with null fields");
-    assertFalse(csv.isBlank(), "CSV must not be empty");
+    assertFalse(Files.readString(out.toPath(), StandardCharsets.UTF_8).isBlank(),
+        "CSV must not be empty");
   }
 
   @Test
-  void exportArrivalsPopulatesCurrentTimestamp() throws IOException {
+  void exportArrivalsDeparturesPopulatesCurrentTimestamp() throws IOException {
     when(cfrApiClient.getAllStations()).thenReturn(List.of(stationResponse("Brasov")));
-    when(cfrApiClient.getStationArrivals(eq("Brasov"), any()))
-        .thenReturn(List.of(trainResponse()));
+    when(cfrApiClient.getStation(eq("Brasov"), any())).thenReturn(List.of(trainResponse()));
 
-    File out = new File(tempDir, "arrivals.csv");
-    service.exportArrivals("04.06.2026", out);
+    File out = new File(tempDir, "out.csv");
+    service.exportArrivalsDepartures("04.06.2026", out, null);
 
     String csv = Files.readString(out.toPath(), StandardCharsets.UTF_8);
     String dataLine = csv.lines().skip(1).findFirst().orElse("");
@@ -102,73 +101,26 @@ class StationExportServiceTest {
   }
 
   @Test
-  void exportArrivalsCreatesParentDirectory() throws IOException {
+  void exportArrivalsDeparturesCreatesParentDirectory() throws IOException {
     when(cfrApiClient.getAllStations()).thenReturn(List.of(stationResponse("Brasov")));
-    when(cfrApiClient.getStationArrivals(eq("Brasov"), any()))
-        .thenReturn(List.of(trainResponse()));
+    when(cfrApiClient.getStation(eq("Brasov"), any())).thenReturn(List.of(trainResponse()));
 
-    File out = new File(tempDir, "nested/dir/arrivals.csv");
-    service.exportArrivals("04.06.2026", out);
+    File out = new File(tempDir, "nested/dir/out.csv");
+    service.exportArrivalsDepartures("04.06.2026", out, null);
 
     assertTrue(out.exists(), "output file must be created even when parent directory is missing");
   }
 
   @Test
-  void exportDeparturesWritesHeaderAndRow() throws IOException {
-    when(cfrApiClient.getAllStations()).thenReturn(List.of(stationResponse("Brasov")));
-    when(cfrApiClient.getStationDepartures(eq("Brasov"), any()))
-        .thenReturn(List.of(trainResponse()));
+  void exportArrivalsDeparturesUsesProvidedStationsList() throws IOException {
+    when(cfrApiClient.getStation(eq("Cluj-Napoca"), any())).thenReturn(List.of(trainResponse()));
 
-    File out = new File(tempDir, "departures.csv");
-    service.exportDepartures("04.06.2026", out);
+    File out = new File(tempDir, "out.csv");
+    service.exportArrivalsDepartures("04.06.2026", out, List.of("Cluj-Napoca"));
 
+    verify(cfrApiClient, never()).getAllStations();
     String csv = Files.readString(out.toPath(), StandardCharsets.UTF_8);
-    assertTrue(csv.contains("currentTimestamp,station,trainId,trainOperator,"
-        + "toStation,departure,departureDelayMinutes,platform"), "header must be present");
-    assertTrue(csv.contains("Brasov"), "station name must appear in data");
-  }
-
-  @Test
-  void exportDeparturesSkipsStationOnFeignException() throws IOException {
-    when(cfrApiClient.getAllStations())
-        .thenReturn(List.of(stationResponse("Brasov"), stationResponse("Cluj-Napoca")));
-    when(cfrApiClient.getStationDepartures(eq("Brasov"), any()))
-        .thenThrow(feignException());
-    when(cfrApiClient.getStationDepartures(eq("Cluj-Napoca"), any()))
-        .thenReturn(List.of(trainResponse()));
-
-    File out = new File(tempDir, "departures.csv");
-    service.exportDepartures("04.06.2026", out);
-
-    String csv = Files.readString(out.toPath(), StandardCharsets.UTF_8);
-    assertTrue(csv.contains("Cluj-Napoca"), "successful station must be in CSV");
-    assertFalse(csv.contains("Brasov"), "failed station must not be in CSV");
-  }
-
-  @Test
-  void exportDeparturesHandlesNullFields() throws IOException {
-    StationTrainResponse dto = new StationTrainResponse();
-    when(cfrApiClient.getAllStations()).thenReturn(List.of(stationResponse("Brasov")));
-    when(cfrApiClient.getStationDepartures(eq("Brasov"), any())).thenReturn(List.of(dto));
-
-    File out = new File(tempDir, "departures.csv");
-    service.exportDepartures("04.06.2026", out);
-
-    assertTrue(out.exists(), "output file must be created even with null fields");
-  }
-
-  @Test
-  void exportDeparturesPopulatesCurrentTimestamp() throws IOException {
-    when(cfrApiClient.getAllStations()).thenReturn(List.of(stationResponse("Brasov")));
-    when(cfrApiClient.getStationDepartures(eq("Brasov"), any()))
-        .thenReturn(List.of(trainResponse()));
-
-    File out = new File(tempDir, "departures.csv");
-    service.exportDepartures("04.06.2026", out);
-
-    String csv = Files.readString(out.toPath(), StandardCharsets.UTF_8);
-    String dataLine = csv.lines().skip(1).findFirst().orElse("");
-    assertFalse(dataLine.startsWith(","), "currentTimestamp column must not be empty");
+    assertTrue(csv.contains("Cluj-Napoca"), "provided station must appear in CSV");
   }
 
   private StationResponse stationResponse(String name) {
@@ -198,7 +150,7 @@ class StationExportServiceTest {
     Request request = Request.create(
         Request.HttpMethod.GET, "http://localhost/test",
         Map.of(), new byte[0], StandardCharsets.UTF_8, new RequestTemplate());
-    return FeignException.errorStatus("getStationArrivals",
+    return FeignException.errorStatus("getStation",
         feign.Response.builder()
             .status(500)
             .reason("Internal Server Error")

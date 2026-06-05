@@ -16,15 +16,9 @@ public interface CfrApiClient {
   @GetMapping("/station/all")
   List<StationResponse> getAllStations();
 
-  /** Returns all arrivals for a station on the given date (dd.MM.yyyy). */
-  @GetMapping("/station/arrivals/{stationName}")
-  List<StationTrainResponse> getStationArrivals(
-      @PathVariable("stationName") String stationName,
-      @RequestParam(value = "date", required = false) String date);
-
-  /** Returns all departures for a station on the given date (dd.MM.yyyy). */
-  @GetMapping("/station/departures/{stationName}")
-  List<StationTrainResponse> getStationDepartures(
+  /** Returns merged arrivals and departures for a station on the given date (dd.MM.yyyy). */
+  @GetMapping("/station/{stationName}")
+  List<StationTrainResponse> getStation(
       @PathVariable("stationName") String stationName,
       @RequestParam(value = "date", required = false) String date);
 }

@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.Collectors;
 import me.tongfei.progressbar.ProgressBar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,45 +36,32 @@ public class StationExportService {
     this.cfrApiClient = cfrApiClient;
   }
 
-  /** Fetches arrivals for every station and streams them to outputFile as CSV. */
-  public void exportArrivals(String date, File outputFile) throws IOException {
-    List<StationResponse> stations = cfrApiClient.getAllStations();
-    try (SequenceWriter sw = openCsvWriter(ArrivalCsvRecord.class, outputFile);
-        ProgressBar pb = new ProgressBar("Arrivals", stations.size())) {
-      for (StationResponse station : stations) {
-        pb.setExtraMessage(station.getName());
-        try {
-          LocalDateTime stamp = LocalDateTime.now();
-          for (StationTrainResponse train :
-              cfrApiClient.getStationArrivals(station.getName(), date)) {
-            train.setCurrentTimestamp(stamp);
-            sw.write(toArrivalRecord(station.getName(), train));
-          }
-        } catch (FeignException ex) {
-          log.warn("Failed to fetch arrivals for station '{}': {}", station.getName(),
-              ex.getMessage());
-        }
-        pb.step();
-      }
+  /**
+   * Fetches merged arrivals and departures and streams them to outputFile as CSV.
+   * If stations is null or empty, all stations are fetched from the API.
+   */
+  public void exportArrivalsDepartures(String date, File outputFile, List<String> stations)
+      throws IOException {
+    List<String> stationNames;
+    if (stations == null || stations.isEmpty()) {
+      stationNames = cfrApiClient.getAllStations().stream()
+          .map(StationResponse::getName)
+          .collect(Collectors.toList());
+    } else {
+      stationNames = stations;
     }
-  }
-
-  /** Fetches departures for every station and streams them to outputFile as CSV. */
-  public void exportDepartures(String date, File outputFile) throws IOException {
-    List<StationResponse> stations = cfrApiClient.getAllStations();
-    try (SequenceWriter sw = openCsvWriter(DepartureCsvRecord.class, outputFile);
-        ProgressBar pb = new ProgressBar("Departures", stations.size())) {
-      for (StationResponse station : stations) {
-        pb.setExtraMessage(station.getName());
+    try (SequenceWriter sw = openCsvWriter(ArrivalsDeparturesCsvRecord.class, outputFile);
+        ProgressBar pb = new ProgressBar("Arrivals+Departures", stationNames.size())) {
+      for (String stationName : stationNames) {
+        pb.setExtraMessage(stationName);
         try {
           LocalDateTime stamp = LocalDateTime.now();
-          for (StationTrainResponse train :
-              cfrApiClient.getStationDepartures(station.getName(), date)) {
+          for (StationTrainResponse train : cfrApiClient.getStation(stationName, date)) {
             train.setCurrentTimestamp(stamp);
-            sw.write(toDepartureRecord(station.getName(), train));
+            sw.write(toArrivalsDeparturesRecord(stationName, train));
           }
         } catch (FeignException ex) {
-          log.warn("Failed to fetch departures for station '{}': {}", station.getName(),
+          log.warn("Failed to fetch arrivals+departures for station '{}': {}", stationName,
               ex.getMessage());
         }
         pb.step();
@@ -91,9 +79,10 @@ public class StationExportService {
     return csvMapper.writer(schema).writeValues(outputFile);
   }
 
-  private ArrivalCsvRecord toArrivalRecord(String stationName, StationTrainResponse dto) {
+  private ArrivalsDeparturesCsvRecord toArrivalsDeparturesRecord(
+      String stationName, StationTrainResponse dto) {
     TrainMetadataResponse meta = dto.getTrain();
-    return ArrivalCsvRecord.builder()
+    return ArrivalsDeparturesCsvRecord.builder()
         .currentTimestamp(formatDateTime(dto.getCurrentTimestamp()))
         .station(stationName)
         .trainId(meta != null ? meta.getId() : null)
@@ -102,17 +91,6 @@ public class StationExportService {
         .arrival(formatDateTime(dto.getArrival()))
         .arrivalDelayMinutes(dto.getArrivalDelay() != null
             ? dto.getArrivalDelay().toMinutes() : null)
-        .platform(dto.getPlatform())
-        .build();
-  }
-
-  private DepartureCsvRecord toDepartureRecord(String stationName, StationTrainResponse dto) {
-    TrainMetadataResponse meta = dto.getTrain();
-    return DepartureCsvRecord.builder()
-        .currentTimestamp(formatDateTime(dto.getCurrentTimestamp()))
-        .station(stationName)
-        .trainId(meta != null ? meta.getId() : null)
-        .trainOperator(meta != null ? meta.getOperator() : null)
         .toStation(dto.getToStation())
         .departure(formatDateTime(dto.getDeparture()))
         .departureDelayMinutes(dto.getDepartureDelay() != null
