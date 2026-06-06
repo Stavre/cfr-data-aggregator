@@ -143,8 +143,24 @@ class DelayAggregationServiceTest {
     Path nestedBase = tempDir.resolve("a/b/c");
     service.aggregateDelays(input, nestedBase, null);
 
-    assertTrue(nestedBase.resolve("arrivals/Brasov/delay.csv").toFile().exists(),
+    assertTrue(nestedBase.resolve("arrivals/B/Brasov/delay.csv").toFile().exists(),
         "output file must be created even when parent directories are missing");
+  }
+
+  @Test
+  void aggregateDelaysSanitizesWhitespaceInStationName() throws IOException {
+    File input = writeInputCsv(
+        "currentTimestamp,cfr_date,station,trainId,trainOperator,"
+            + "fromStation,arrival,arrivalDelayMinutes,"
+            + "toStation,departure,departureDelayMinutes,platform",
+        "\"06.06.2026 10:00\",06.06.2026,Bucuresti Nord,IR1,CFR,Brasov,"
+            + "\"06.06.2026 10:30\",5,Sinaia,\"06.06.2026 10:35\",3,3"
+    );
+
+    service.aggregateDelays(input, tempDir, null);
+
+    assertTrue(tempDir.resolve("arrivals/B/Bucuresti_Nord/delay.csv").toFile().exists(),
+        "spaces in station name must be replaced with underscores in directory");
   }
 
   private File writeInputCsv(String... lines) throws IOException {
@@ -154,11 +170,17 @@ class DelayAggregationServiceTest {
   }
 
   private String readOutput(String type, String station) throws IOException {
-    Path path = tempDir.resolve(type).resolve(station).resolve("delay.csv");
+    Path path = tempDir.resolve(type).resolve(station.substring(0, 1).toUpperCase())
+        .resolve(sanitize(station)).resolve("delay.csv");
     return Files.readString(path, StandardCharsets.UTF_8);
   }
 
   private boolean arrivalFileExists(String station) {
-    return tempDir.resolve("arrivals").resolve(station).resolve("delay.csv").toFile().exists();
+    return tempDir.resolve("arrivals").resolve(station.substring(0, 1).toUpperCase())
+        .resolve(sanitize(station)).resolve("delay.csv").toFile().exists();
+  }
+
+  private String sanitize(String station) {
+    return station.replaceAll("\\s", "_").replace(".", ",");
   }
 }

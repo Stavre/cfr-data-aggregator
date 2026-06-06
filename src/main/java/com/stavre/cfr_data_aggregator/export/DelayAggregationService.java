@@ -38,7 +38,8 @@ public class DelayAggregationService {
 
     for (Map.Entry<String, Long> entry : arrivalDelays.entrySet()) {
       String station = entry.getKey();
-      File out = basePath.resolve("arrivals").resolve(station).resolve("delay.csv").toFile();
+      File out = basePath.resolve("arrivals").resolve(firstLetter(station))
+          .resolve(sanitizeStation(station)).resolve("delay.csv").toFile();
       ArrivalDelayRecord record = ArrivalDelayRecord.builder()
           .currentTimestamp(timestamps.get(station))
           .cfrDate(cfrDates.get(station))
@@ -52,7 +53,8 @@ public class DelayAggregationService {
 
     for (Map.Entry<String, Long> entry : departureDelays.entrySet()) {
       String station = entry.getKey();
-      File out = basePath.resolve("departures").resolve(station).resolve("delay.csv").toFile();
+      File out = basePath.resolve("departures").resolve(firstLetter(station))
+          .resolve(sanitizeStation(station)).resolve("delay.csv").toFile();
       DepartureDelayRecord record = DepartureDelayRecord.builder()
           .currentTimestamp(timestamps.get(station))
           .cfrDate(cfrDates.get(station))
@@ -112,6 +114,14 @@ public class DelayAggregationService {
       schema = schema.withHeader();
     }
     return csvMapper.writer(schema).writeValues(new FileOutputStream(outputFile, true));
+  }
+
+  private String firstLetter(String station) {
+    return station.substring(0, 1).toUpperCase();
+  }
+
+  private String sanitizeStation(String station) {
+    return station.replaceAll("\\s", "_").replace(".", ",");
   }
 
   private long parseLong(String value) {
