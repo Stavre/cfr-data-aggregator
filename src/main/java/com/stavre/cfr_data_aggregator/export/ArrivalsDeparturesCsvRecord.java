@@ -1,5 +1,6 @@
 package com.stavre.cfr_data_aggregator.export;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Builder;
 import lombok.Getter;
@@ -9,7 +10,7 @@ import lombok.Getter;
 @Getter
 @Builder
 @JsonPropertyOrder({
-  "currentTimestamp", "station", "trainId", "trainOperator",
+  "currentTimestamp", "cfr_date", "station", "trainId", "trainOperator",
   "fromStation", "arrival", "arrivalDelayMinutes",
   "toStation", "departure", "departureDelayMinutes",
   "platform"
@@ -17,6 +18,8 @@ import lombok.Getter;
 public class ArrivalsDeparturesCsvRecord {
 
   private final String currentTimestamp;
+  @JsonProperty("cfr_date")
+  private final String cfrDate;
   private final String station;
   private final String trainId;
   private final String trainOperator;

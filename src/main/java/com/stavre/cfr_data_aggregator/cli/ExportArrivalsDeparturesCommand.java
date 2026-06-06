@@ -36,7 +36,8 @@ public class ExportArrivalsDeparturesCommand implements Runnable {
   private File outputFile;
 
   @SuppressWarnings("PMD.ImmutableField")
-  @Option(names = {"--log-file"}, description = "Log file path (default: arrivals-departures-{timestamp}.log)")
+  @Option(names = {"--log-file"},
+      description = "Log file path (default: arrivals-departures-{timestamp}.log)")
   private File logFile;
 
   @SuppressWarnings("PMD.ImmutableField")

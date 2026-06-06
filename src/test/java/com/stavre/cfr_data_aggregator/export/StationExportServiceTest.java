@@ -52,8 +52,9 @@ class StationExportServiceTest {
     service.exportArrivalsDepartures("04.06.2026", out, null);
 
     String csv = Files.readString(out.toPath(), StandardCharsets.UTF_8);
-    assertTrue(csv.contains("currentTimestamp,station,trainId,trainOperator,"
-        + "fromStation,arrival,arrivalDelayMinutes,toStation,departure,departureDelayMinutes,platform"),
+    assertTrue(csv.contains("currentTimestamp,cfr_date,station,trainId,trainOperator,"
+        + "fromStation,arrival,arrivalDelayMinutes,"
+        + "toStation,departure,departureDelayMinutes,platform"),
         "header must be present");
     assertTrue(csv.contains("Brasov"), "station name must appear in data");
   }
@@ -109,6 +110,19 @@ class StationExportServiceTest {
     service.exportArrivalsDepartures("04.06.2026", out, null);
 
     assertTrue(out.exists(), "output file must be created even when parent directory is missing");
+  }
+
+  @Test
+  void exportArrivalsDeparturesPopulatesCfrDate() throws IOException {
+    when(cfrApiClient.getAllStations()).thenReturn(List.of(stationResponse("Brasov")));
+    when(cfrApiClient.getStation(eq("Brasov"), any())).thenReturn(List.of(trainResponse()));
+
+    File out = new File(tempDir, "out.csv");
+    service.exportArrivalsDepartures("04.06.2026", out, null);
+
+    String csv = Files.readString(out.toPath(), StandardCharsets.UTF_8);
+    String dataLine = csv.lines().skip(1).findFirst().orElse("");
+    assertTrue(dataLine.contains("04.06.2026"), "cfr_date column must contain the queried date");
   }
 
   @Test

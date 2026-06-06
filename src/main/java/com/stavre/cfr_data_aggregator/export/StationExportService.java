@@ -1,8 +1,8 @@
 package com.stavre.cfr_data_aggregator.export;
 
+import com.fasterxml.jackson.databind.SequenceWriter;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-import com.fasterxml.jackson.databind.SequenceWriter;
 import com.stavre.cfr_data_aggregator.client.CfrApiClient;
 import com.stavre.cfr_data_aggregator.client.dto.StationResponse;
 import com.stavre.cfr_data_aggregator.client.dto.StationTrainResponse;
@@ -58,7 +58,7 @@ public class StationExportService {
           LocalDateTime stamp = LocalDateTime.now();
           for (StationTrainResponse train : cfrApiClient.getStation(stationName, date)) {
             train.setCurrentTimestamp(stamp);
-            sw.write(toArrivalsDeparturesRecord(stationName, train));
+            sw.write(toArrivalsDeparturesRecord(stationName, date, train));
           }
         } catch (FeignException ex) {
           log.warn("Failed to fetch arrivals+departures for station '{}': {}", stationName,
@@ -80,10 +80,11 @@ public class StationExportService {
   }
 
   private ArrivalsDeparturesCsvRecord toArrivalsDeparturesRecord(
-      String stationName, StationTrainResponse dto) {
+      String stationName, String date, StationTrainResponse dto) {
     TrainMetadataResponse meta = dto.getTrain();
     return ArrivalsDeparturesCsvRecord.builder()
         .currentTimestamp(formatDateTime(dto.getCurrentTimestamp()))
+        .cfrDate(date)
         .station(stationName)
         .trainId(meta != null ? meta.getId() : null)
         .trainOperator(meta != null ? meta.getOperator() : null)
