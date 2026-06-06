@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.stavre.cfr_data_aggregator.export.StationExportService;
@@ -29,9 +30,10 @@ class ExportArrivalsDeparturesCommandTest {
   private LogFileConfigurer logFileConfigurer;
 
   @Test
-  void defaultOutputFileNameMatchesTimestampPattern() throws IOException {
+  void defaultOutputFileNameMatchesTimestampPattern() throws Exception {
     ExportArrivalsDeparturesCommand cmd =
         new ExportArrivalsDeparturesCommand(stationExportService, logFileConfigurer);
+    setField(cmd, "stations", List.of("all"));
     cmd.run();
 
     ArgumentCaptor<File> captor = ArgumentCaptor.forClass(File.class);
@@ -41,9 +43,10 @@ class ExportArrivalsDeparturesCommandTest {
   }
 
   @Test
-  void defaultLogFileNameMatchesTimestampPattern() {
+  void defaultLogFileNameMatchesTimestampPattern() throws Exception {
     ExportArrivalsDeparturesCommand cmd =
         new ExportArrivalsDeparturesCommand(stationExportService, logFileConfigurer);
+    setField(cmd, "stations", List.of("all"));
     cmd.run();
 
     ArgumentCaptor<File> captor = ArgumentCaptor.forClass(File.class);
@@ -56,6 +59,7 @@ class ExportArrivalsDeparturesCommandTest {
   void customOutputFileIsPassedThrough() throws Exception {
     ExportArrivalsDeparturesCommand cmd =
         new ExportArrivalsDeparturesCommand(stationExportService, logFileConfigurer);
+    setField(cmd, "stations", List.of("all"));
     File custom = new File("custom.csv");
     setField(cmd, "outputFile", custom);
     cmd.run();
@@ -67,26 +71,50 @@ class ExportArrivalsDeparturesCommandTest {
   }
 
   @Test
-  void logFileConfigurerDetachedEvenOnServiceException() throws IOException {
+  void logFileConfigurerDetachedEvenOnServiceException() throws Exception {
     doThrow(new IOException("boom")).when(stationExportService)
         .exportArrivalsDepartures(any(), any(), any());
     ExportArrivalsDeparturesCommand cmd =
         new ExportArrivalsDeparturesCommand(stationExportService, logFileConfigurer);
+    setField(cmd, "stations", List.of("all"));
 
     assertDoesNotThrow(cmd::run, "IOException must not propagate out of run()");
     verify(logFileConfigurer).detach();
   }
 
   @Test
-  @SuppressWarnings("unchecked")
-  void nullStationsPassedToServiceWhenOptionOmitted() throws IOException {
+  void missingStationsPrintsErrorAndDoesNotCallService() throws IOException {
     ExportArrivalsDeparturesCommand cmd =
         new ExportArrivalsDeparturesCommand(stationExportService, logFileConfigurer);
     cmd.run();
 
+    verify(stationExportService, never()).exportArrivalsDepartures(any(), any(), any());
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void allKeywordPassesNullToService() throws Exception {
+    ExportArrivalsDeparturesCommand cmd =
+        new ExportArrivalsDeparturesCommand(stationExportService, logFileConfigurer);
+    setField(cmd, "stations", List.of("all"));
+    cmd.run();
+
     ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
     verify(stationExportService).exportArrivalsDepartures(any(), any(), captor.capture());
-    assertNull(captor.getValue(), "stations must be null when --stations is not provided");
+    assertNull(captor.getValue(), "'all' must be translated to null so service fetches all stations");
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void allKeywordIsCaseInsensitive() throws Exception {
+    ExportArrivalsDeparturesCommand cmd =
+        new ExportArrivalsDeparturesCommand(stationExportService, logFileConfigurer);
+    setField(cmd, "stations", List.of("ALL"));
+    cmd.run();
+
+    ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
+    verify(stationExportService).exportArrivalsDepartures(any(), any(), captor.capture());
+    assertNull(captor.getValue(), "'ALL' must be treated the same as 'all'");
   }
 
   @Test

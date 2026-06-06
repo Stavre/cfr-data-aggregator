@@ -33,7 +33,7 @@ public class AggregateDelaysCommand implements Runnable {
   @SuppressWarnings("PMD.ImmutableField")
   @Option(
       names = {"-s", "--stations"},
-      description = "Comma-delimited list of station names to process (default: all stations)",
+      description = "Use 'all' to process every station, or a comma-delimited list. Required.",
       split = ","
   )
   private List<String> stations;
@@ -45,8 +45,17 @@ public class AggregateDelaysCommand implements Runnable {
 
   @Override
   public void run() {
+    if (stations == null || stations.isEmpty()) {
+      System.err.println(
+          "Error: --stations is required. Use 'all' to process all stations "
+          + "or supply a comma-delimited list.");
+      return;
+    }
+    List<String> resolvedStations = stations.size() == 1
+        && "all".equalsIgnoreCase(stations.get(0)) ? null : stations;
+
     try {
-      delayAggregationService.aggregateDelays(inputFile, basePath, stations);
+      delayAggregationService.aggregateDelays(inputFile, basePath, resolvedStations);
     } catch (IOException ex) {
       System.err.println("Aggregation failed: " + ex.getMessage());
     }

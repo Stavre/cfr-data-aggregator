@@ -43,7 +43,7 @@ public class ExportArrivalsDeparturesCommand implements Runnable {
   @SuppressWarnings("PMD.ImmutableField")
   @Option(
       names = {"-s", "--stations"},
-      description = "Comma-delimited list of station names to process (default: all stations)",
+      description = "Use 'all' to process every station, or a comma-delimited list. Required.",
       split = ","
   )
   private List<String> stations;
@@ -58,6 +58,15 @@ public class ExportArrivalsDeparturesCommand implements Runnable {
 
   @Override
   public void run() {
+    if (stations == null || stations.isEmpty()) {
+      System.err.println(
+          "Error: --stations is required. Use 'all' to process all stations "
+          + "or supply a comma-delimited list.");
+      return;
+    }
+    List<String> resolvedStations = stations.size() == 1
+        && "all".equalsIgnoreCase(stations.get(0)) ? null : stations;
+
     String resolvedDate = date != null ? date : LocalDate.now().format(DATE_FMT);
     String timestamp = LocalDateTime.now().format(FILE_TS_FMT);
     File resolvedOutput = outputFile != null
@@ -67,7 +76,7 @@ public class ExportArrivalsDeparturesCommand implements Runnable {
 
     logFileConfigurer.attach(resolvedLog);
     try {
-      stationExportService.exportArrivalsDepartures(resolvedDate, resolvedOutput, stations);
+      stationExportService.exportArrivalsDepartures(resolvedDate, resolvedOutput, resolvedStations);
     } catch (IOException ex) {
       System.err.println("Export failed: " + ex.getMessage());
     } finally {

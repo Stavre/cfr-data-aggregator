@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.stavre.cfr_data_aggregator.export.DelayAggregationService;
@@ -31,6 +32,7 @@ class AggregateDelaysCommandTest {
     File input = new File("arrivals-departures.csv");
     setField(cmd, "inputFile", input);
     setField(cmd, "basePath", Path.of("out"));
+    setField(cmd, "stations", List.of("all"));
     cmd.run();
 
     ArgumentCaptor<File> captor = ArgumentCaptor.forClass(File.class);
@@ -45,6 +47,7 @@ class AggregateDelaysCommandTest {
     Path base = Path.of("output/delays");
     setField(cmd, "inputFile", new File("input.csv"));
     setField(cmd, "basePath", base);
+    setField(cmd, "stations", List.of("all"));
     cmd.run();
 
     ArgumentCaptor<Path> captor = ArgumentCaptor.forClass(Path.class);
@@ -53,16 +56,41 @@ class AggregateDelaysCommandTest {
   }
 
   @Test
-  @SuppressWarnings("unchecked")
-  void nullStationsPassedToServiceWhenOptionOmitted() throws Exception {
+  void missingStationsPrintsErrorAndDoesNotCallService() throws Exception {
     AggregateDelaysCommand cmd = new AggregateDelaysCommand(delayAggregationService);
     setField(cmd, "inputFile", new File("input.csv"));
     setField(cmd, "basePath", Path.of("out"));
     cmd.run();
 
+    verify(delayAggregationService, never()).aggregateDelays(any(), any(), any());
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void allKeywordPassesNullToService() throws Exception {
+    AggregateDelaysCommand cmd = new AggregateDelaysCommand(delayAggregationService);
+    setField(cmd, "inputFile", new File("input.csv"));
+    setField(cmd, "basePath", Path.of("out"));
+    setField(cmd, "stations", List.of("all"));
+    cmd.run();
+
     ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
     verify(delayAggregationService).aggregateDelays(any(), any(), captor.capture());
-    assertNull(captor.getValue(), "stations must be null when --stations is not provided");
+    assertNull(captor.getValue(), "'all' must be translated to null so service processes all rows");
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void allKeywordIsCaseInsensitive() throws Exception {
+    AggregateDelaysCommand cmd = new AggregateDelaysCommand(delayAggregationService);
+    setField(cmd, "inputFile", new File("input.csv"));
+    setField(cmd, "basePath", Path.of("out"));
+    setField(cmd, "stations", List.of("ALL"));
+    cmd.run();
+
+    ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
+    verify(delayAggregationService).aggregateDelays(any(), any(), captor.capture());
+    assertNull(captor.getValue(), "'ALL' must be treated the same as 'all'");
   }
 
   @Test
@@ -87,6 +115,7 @@ class AggregateDelaysCommandTest {
     AggregateDelaysCommand cmd = new AggregateDelaysCommand(delayAggregationService);
     setField(cmd, "inputFile", new File("input.csv"));
     setField(cmd, "basePath", Path.of("out"));
+    setField(cmd, "stations", List.of("all"));
 
     assertDoesNotThrow(cmd::run, "IOException must not propagate out of run()");
   }
