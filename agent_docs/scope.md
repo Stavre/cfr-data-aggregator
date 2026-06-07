@@ -2,7 +2,7 @@
 
 ## Purpose
 
-CFR Data Aggregator is a CLI tool that fetches combined train arrivals and departures for Romanian railway stations from the cfr-api-adapter service and exports them to a CSV file. It solves the problem of cfr-api-adapter exposing per-station data with no bulk export facility, bridging that gap for data analysis and reporting use cases.
+CFR Data Aggregator is a CLI tool that fetches combined train arrivals and departures for Romanian railway stations from the cfr-api-adapter service and exports them to a CSV file. It also supports exporting the station list itself and reconciling station lists across files. It solves the problem of cfr-api-adapter exposing per-station data with no bulk export facility, bridging that gap for data analysis and reporting use cases.
 
 ## Problem Solved
 
@@ -29,10 +29,12 @@ The aggregator operates in the Romanian railway domain, consuming data already s
 | Default timestamped output | Auto-generates output CSV and log filenames with a `yyyyMMdd_HHmmss` timestamp when not specified |
 | File-based logging | Captures WARN-level and above messages to a separate log file per run; no console output |
 | Progress reporting | Displays a progress bar during export so the user can track long-running fetches |
+| Station list export | Fetches the full list of known stations from cfr-api-adapter and writes them to a CSV file with an `isImportant` flag |
+| Station list reconciliation | Compares two station CSV files and appends to the base file any stations present in the new file but not already in the base; prints each added name |
 
 ## CLI Interface
 
-Entry point: the `export-arrivals-departures` subcommand of the `cfr` root command.
+### `export-arrivals-departures`
 
 ```
 cfr export-arrivals-departures [OPTIONS]
@@ -45,15 +47,41 @@ cfr export-arrivals-departures [OPTIONS]
 | `--log-file` | — | File | `arrivals-departures-{timestamp}.log` | Log file path (WARN+ only) |
 | `--stations` | `-s` | List\<String\> | null (all stations) | Comma-delimited station names to include |
 
-## CSV Output Format
+### `export-stations`
+
+```
+cfr export-stations [OPTIONS]
+```
+
+| Option | Short | Type | Default | Description |
+|---|---|---|---|---|
+| `--output` | `-o` | File | `stations-{timestamp}.csv` | Output CSV file path |
+
+Requires cfr-api-adapter to be running. All exported stations have `isImportant=false` by default.
+
+### `reconcile-stations`
+
+```
+cfr reconcile-stations --base-file <file> --new-file <file>
+```
+
+| Option | Short | Type | Required | Description |
+|---|---|---|---|---|
+| `--base-file` | `-b` | File | yes | Base stations CSV; new entries are appended here |
+| `--new-file` | `-n` | File | yes | Source stations CSV to compare against the base |
+
+Prints `Added: <name>` for each appended station, or `No new stations found.` when nothing changed. Does not require cfr-api-adapter to be running.
+
+## CSV Output Formats
+
+### Arrivals/Departures CSV
 
 Each row represents one train's arrival/departure record at one station on the target date.
-
-**Columns (in order):**
 
 | Column | Type | Description |
 |---|---|---|
 | `currentTimestamp` | String | Timestamp when the station was queried (`dd.MM.yyyy HH:mm`) |
+| `cfr_date` | String | The date for which data was requested |
 | `station` | String | Station name |
 | `trainId` | String | Train identifier |
 | `trainOperator` | String | Rail operator name |
@@ -65,20 +93,30 @@ Each row represents one train's arrival/departure record at one station on the t
 | `departureDelayMinutes` | Long | Departure delay in minutes, null if not available |
 | `platform` | String | Platform number, null if not available |
 
+### Stations CSV
+
+Each row represents one station.
+
+| Column | Type | Description |
+|---|---|---|
+| `name` | String | Station name |
+| `isImportant` | Boolean | User-managed importance flag; defaults to `false` on export |
+
 ## External Dependency
 
-CFR Data Aggregator calls the cfr-api-adapter REST API. The adapter must be running and reachable before the export command is executed.
+CFR Data Aggregator calls the cfr-api-adapter REST API. The adapter must be running and reachable before `export-arrivals-departures` or `export-stations` is executed. `reconcile-stations` requires no API access.
 
 | Config key | Default | Description |
 |---|---|---|
 | `cfr-api.base-url` | `http://localhost:8080` | Base URL of the cfr-api-adapter instance |
 
-Two endpoints are used:
-- `GET /station/all` — fetches the full list of station names (called only when `--stations` is not provided)
+Endpoints used:
+- `GET /station/all` — fetches the full list of station names
 - `GET /station/{stationName}?date={date}` — fetches arrivals and departures for one station on one date
 
 ## Scope Boundaries
 
-- **In scope**: reading data from cfr-api-adapter and writing it to CSV.
+- **In scope**: reading data from cfr-api-adapter and writing it to CSV; managing station list CSV files.
 - **Out of scope**: scraping CFR's website directly, booking tickets, modifying data, authentication.
-- The tool is read-only and stateless; it makes live requests to cfr-api-adapter on every run.
+- The tool is read-only with respect to cfr-api-adapter and stateless; it makes live requests on every run.
+- `reconcile-stations` modifies the base file in place (append-only).

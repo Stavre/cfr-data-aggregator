@@ -101,7 +101,8 @@ class ExportArrivalsDeparturesCommandTest {
 
     ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
     verify(stationExportService).exportArrivalsDepartures(any(), any(), captor.capture());
-    assertNull(captor.getValue(), "'all' must be translated to null so service fetches all stations");
+    assertNull(captor.getValue(),
+        "'all' must be translated to null so service fetches all stations");
   }
 
   @Test

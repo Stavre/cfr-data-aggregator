@@ -46,6 +46,33 @@ CSV columns:
 currentTimestamp, station, trainId, trainOperator, fromStation, arrival, arrivalDelayMinutes, toStation, departure, departureDelayMinutes, platform
 ```
 
+### `export-stations`
+
+Fetches all station names from cfr-api-adapter via `/station/all` and writes them to a CSV file. Each station is saved with `isImportant=false` by default; the flag can be edited manually and is preserved by `reconcile-stations`.
+
+```bash
+./gradlew bootRun --args="export-stations [options]"
+```
+
+| Option | Description | Default |
+|---|---|---|
+| `-o, --output` | Output CSV file path | `stations-{yyyyMMdd_HHmmss}.csv` |
+
+CSV columns: `name`, `isImportant`
+
+### `reconcile-stations`
+
+Compares two station CSV files and appends to the base file any station names present in the new file but not already in the base. The `isImportant` value from the new file is preserved for each appended row. Prints `Added: <name>` for each new station, or `No new stations found.` if nothing changed. Does not require cfr-api-adapter to be running.
+
+```bash
+./gradlew bootRun --args="reconcile-stations --base-file <path> --new-file <path>"
+```
+
+| Option | Description |
+|---|---|
+| `-b, --base-file` | Base CSV file to compare against and append into (required) |
+| `-n, --new-file` | New CSV file with potentially new station names (required) |
+
 ## Running tests
 
 ```bash
