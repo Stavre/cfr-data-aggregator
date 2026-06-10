@@ -13,6 +13,9 @@ import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.stavre.cfr_data_aggregator.records.ArrivalDelayRecord;
+import com.stavre.cfr_data_aggregator.records.DepartureDelayRecord;
 import org.springframework.stereotype.Service;
 
 /** Reads an arrivalsDepartures CSV and writes per-station aggregated delay files. */

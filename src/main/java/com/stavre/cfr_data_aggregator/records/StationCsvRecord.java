@@ -1,4 +1,4 @@
-package com.stavre.cfr_data_aggregator.export;
+package com.stavre.cfr_data_aggregator.records;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Builder;

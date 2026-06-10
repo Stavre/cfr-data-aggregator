@@ -12,8 +12,11 @@ import picocli.CommandLine.Command;
     description = "CFR Data Aggregator CLI",
     subcommands = {
         ExportArrivalsDeparturesCommand.class,
+        ExportTrainItinerariesCommand.class,
         AggregateDelaysCommand.class,
+        AggregateTrainsCommand.class,
         ExportStationsCommand.class,
+        ExportTrainsCommand.class,
         ReconcileStationsCommand.class
     }
 )

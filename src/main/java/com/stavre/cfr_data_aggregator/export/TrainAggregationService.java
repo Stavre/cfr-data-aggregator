@@ -13,6 +13,9 @@ import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.stavre.cfr_data_aggregator.records.TrainArrivalDelayRecord;
+import com.stavre.cfr_data_aggregator.records.TrainDepartureDelayRecord;
 import org.springframework.stereotype.Service;
 
 /** Reads a train-itineraries CSV and writes per-train, per-station aggregated delay files. */

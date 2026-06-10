@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import com.stavre.cfr_data_aggregator.records.StationCsvRecord;
 import org.springframework.stereotype.Service;
 
 /** Fetches and manages station list CSV files. */

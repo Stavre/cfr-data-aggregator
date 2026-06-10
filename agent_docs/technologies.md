@@ -18,20 +18,20 @@
 
 ## Serialization
 
-- **Jackson CSV dataformat** — used in `StationExportService` via `CsvMapper` to serialize `ArrivalsDeparturesCsvRecord` objects to CSV rows. Column order is declared with `@JsonPropertyOrder` on the record class.
+- **Jackson CSV dataformat** — used across multiple services (`StationExportService`, `TrainExportService`, `DelayAggregationService`, `TrainAggregationService`, `StationListService`, `TrainListService`) via `CsvMapper` to serialize record objects to CSV rows. Column order is declared with `@JsonPropertyOrder` on each record class.
 - **Jackson datatype-jsr310** — registers serializers/deserializers for `java.time` types (`LocalDateTime`, `Duration`) so that cfr-api-adapter's JSON responses are correctly deserialized by Feign.
 
 ## Progress Reporting
 
-- **ProgressBar 0.10.1** — displays a terminal progress bar during the export loop. One tick per station processed.
+- **ProgressBar 0.10.1** — displays a terminal progress bar during the export loop. Used in `StationExportService` (one tick per station) and `TrainExportService` (one tick per train).
 
 ## Boilerplate Reduction
 
-- **Lombok** — annotation processor used on DTOs and the service class to generate builders (`@Builder`), getters (`@Getter`), and data accessors (`@Data`).
+- **Lombok** — annotation processor used on DTOs and service classes to generate builders (`@Builder`), getters (`@Getter`), and data accessors (`@Data`).
 
 ## Logging
 
-- **Logback** (via Spring Boot's logging starter) — logging implementation. Console logging is disabled by default (`logging.threshold.console: OFF`). `LogFileConfigurer` dynamically attaches a `FileAppender` with a `ThresholdFilter(WARN)` to the root logger at command start and detaches it at command end, producing a per-run log file.
+- **Logback** (via Spring Boot's logging starter) — logging implementation. Console logging is disabled by default (`logging.threshold.console: OFF`). `LogFileConfigurer` dynamically attaches a `FileAppender` with a `ThresholdFilter(WARN)` to the root logger at command start and detaches it at command end, producing a per-run log file. Used by `ExportArrivalsDeparturesCommand` and `ExportTrainItinerariesCommand`; not needed by the aggregation or list-export commands.
 
 ## Build System
 

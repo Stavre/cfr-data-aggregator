@@ -7,6 +7,7 @@ import com.stavre.cfr_data_aggregator.client.CfrApiClient;
 import com.stavre.cfr_data_aggregator.client.dto.StationResponse;
 import com.stavre.cfr_data_aggregator.client.dto.StationTrainResponse;
 import com.stavre.cfr_data_aggregator.client.dto.TrainMetadataResponse;
+import com.stavre.cfr_data_aggregator.records.ArrivalsDeparturesCsvRecord;
 import feign.FeignException;
 import java.io.File;
 import java.io.IOException;
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import me.tongfei.progressbar.ProgressBar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,16 +44,11 @@ public class StationExportService {
    */
   public void exportArrivalsDepartures(String date, File outputFile, List<String> stations)
       throws IOException {
-    List<String> stationNames;
-    if (stations == null || stations.isEmpty()) {
-      stationNames = cfrApiClient.getAllStations().stream()
-          .map(StationResponse::getName)
-          .collect(Collectors.toList());
-    } else {
-      stationNames = stations;
-    }
+    List<String> stationNames = resolveStations(stations);
+
     try (SequenceWriter sw = openCsvWriter(ArrivalsDeparturesCsvRecord.class, outputFile);
-        ProgressBar pb = new ProgressBar("Arrivals+Departures", stationNames.size())) {
+         ProgressBar pb = new ProgressBar("Arrivals+Departures", stationNames.size())) {
+
       for (String stationName : stationNames) {
         pb.setExtraMessage(stationName);
         try {
@@ -67,6 +64,15 @@ public class StationExportService {
         pb.step();
       }
     }
+  }
+
+  private List<String> resolveStations(List<String> stations) {
+    if (stations == null || stations.isEmpty()) {
+      return cfrApiClient.getAllStations().stream()
+              .map(StationResponse::getName)
+              .collect(Collectors.toList());
+    }
+    return stations;
   }
 
   private <T> SequenceWriter openCsvWriter(Class<T> recordClass, File outputFile)
