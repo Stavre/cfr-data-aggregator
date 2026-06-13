@@ -1,4 +1,4 @@
-package com.stavre.cfr_data_aggregator.cli;
+package com.stavre.cfr_data_aggregator.log;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
